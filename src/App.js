@@ -1,25 +1,54 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { isEmpty, map } from 'lodash';
+import { Container, Row, Form, Input } from 'reactstrap';
+import { MdSearch } from 'react-icons/md';
+import { format } from 'date-fns'
 
-function App() {
+import useInterval from './hooks/useInterval'
+
+import useFetchData from './hooks/useFetchData';
+import CityCard from './components/CityCard';
+
+const App = () => {
+  const [searchValue, setSearchValue] = useState('');
+  const [date, setDate] = useState('')
+  const { data, isLoading, isError, fetchNewCity } = useFetchData();
+  const getDate = () => setDate(format(new Date(), 'MM/DD/YYYY HH:mm:ss'));
+  useInterval(() => {
+    getDate()
+  }, 1000)
+
+  const onFormSubmit = async () => {
+    if (!isEmpty(searchValue)) {
+      await fetchNewCity(searchValue)
+      setSearchValue('')
+    }
+  }
+
+  const onRefresh = id => fetchNewCity(id)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container className="App text-center py-5">
+      <h1>Weather</h1>
+      <h4>{date}</h4>
+      <Form className='d-flex justify-content-center'>
+        <Input
+          type="text"
+          value={searchValue}
+          onChange={e => setSearchValue(e.target.value)}
+        />
+        <div className='c-pointer px-1' onClick={onFormSubmit}><MdSearch size={32}/></div>
+      </Form>
+      {isLoading ? <div>loading...</div> : <div>...</div>}
+      {isError && <div>Something went wrong ...</div>}
+      <Row noGutters>
+        {!isEmpty(data) && (
+          map(data, city => (
+            <CityCard key={city.id} city={city} onRefresh={() => onRefresh(city.id)}/>
+          ))
+        )}
+      </Row>
+    </Container>
   );
 }
 
