@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 const useInterval = (callback, delay = null) => {
   // const [count, setCount] = useState(0)
